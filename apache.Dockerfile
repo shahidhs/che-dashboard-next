@@ -8,16 +8,16 @@
 # Contributors:
 #   Red Hat, Inc. - initial API and implementation
 
-FROM --platform=$TARGETPLATFORM docker.io/node:10.20.1 as builder
+FROM docker.io/node:10.20.1 as builder
 
 COPY package.json /dashboard/
 COPY yarn.lock /dashboard/
 WORKDIR /dashboard
-RUN yarn install --ignore-optional
+RUN yarn --network-timeout 600000 && yarn install --ignore-optional
 COPY . /dashboard/
 RUN yarn compile
 
-FROM --platform=$TARGETPLATFORM docker.io/httpd:2.4.43-alpine
+FROM docker.io/httpd:2.4.43-alpine
 RUN sed -i 's|    AllowOverride None|    AllowOverride All|' /usr/local/apache2/conf/httpd.conf && \
     sed -i 's|Listen 80|Listen 8080|' /usr/local/apache2/conf/httpd.conf && \
     mkdir -p /var/www && ln -s /usr/local/apache2/htdocs /var/www/html && \
